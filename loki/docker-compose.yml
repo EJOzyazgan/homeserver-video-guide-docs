@@ -1,0 +1,26 @@
+version: '3.9'
+services:
+  loki:
+    image: grafana/loki:latest
+    user: 568:568
+    ports:
+      - 3100:3100
+    volumes:
+     - /mnt/HDDs/configs/loki/local-config.yaml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
+
+
+  alloy:
+    image: grafana/alloy:latest
+    privileged: true
+    ports:
+      - 12345:12345
+      - 4317:4317
+      - 4318:4318
+    volumes:
+      - /mnt/HDDs/configs/loki/config.alloy:/etc/alloy/config.alloy
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /mnt/HDDs/vintagestory/data/Logs:/vs-logs
+    environment:
+      ALLOY_DEPLOY_MODE: docker
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
