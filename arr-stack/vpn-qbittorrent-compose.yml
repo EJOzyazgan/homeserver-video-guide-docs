@@ -1,0 +1,61 @@
+version: '3.9'
+services:
+  vpn:
+    image: thrnz/docker-wireguard-pia
+    # Alternatively you may use ghcr.io
+    #image: ghcr.io/thrnz/docker-wireguard-pia
+    container_name: docker-wireguard-pia
+    volumes:
+      #Auth token is stored here
+      - <nas-dataset-pia-config-path>:/pia
+      # If enabled, the forwarded port is dumped to /pia-shared/port.dat for potential use in other containers
+      - <nas-dataset-pia-config-path>:/pia-shared
+    ports:
+      - 8888:8888
+    cap_add:
+      - NET_ADMIN
+    environment:
+      # The following env vars are required:
+      - LOC=<pia-loc-code>
+      - USER=<pia-user>
+      - PASS=<pia-password>
+      #The rest are optional:
+      - LOCAL_NETWORK=<local-nas-ip>/24
+      - PORT_PERSIST=1
+      - PORT_SCRIPT=/pia-shared/ports.sh 
+      - KEEPALIVE=25
+      - VPNDNS=8.8.8.8,8.8.4.4
+      - PORT_FORWARDING=1
+    sysctls:
+      # The wg-quick script tries to set this when setting up routing, however this requires running the container
+      # with the --privileged flag set. Setting it here instead if needed means the container can be run with lower
+      # privileges. This only needs setting if strict reverse path filtering (rp_filter=1) is used.
+      - net.ipv4.conf.all.src_valid_mark=1
+      # May as well disable ipv6. Should be blocked anyway.
+      - net.ipv6.conf.default.disable_ipv6=1
+      - net.ipv6.conf.all.disable_ipv6=1
+      - net.ipv6.conf.lo.disable_ipv6=1
+
+  # Example of another service sharing the VPN
+  # If this service needs LAN access then LOCAL_NETWORK must be set appropriately on the vpn container
+  # Forwarded ports should also be set on the vpn container if needed rather than this one in
+  # order to access from the LAN
+  # It may be preferable to use a reverse proxy connected via the docker bridge network instead
+  # to keep the vpn isolated from the LAN
+  qbittorrent:
+      image: lscr.io/linuxserver/qbittorrent:latest
+      container_name: qbittorrent
+      environment:
+        - PUID=568
+        - PGID=568
+        - TZ=America/Los_Angeles
+        - WEBUI_PORT=8888
+      volumes:
+        - <nas-dataset-config-path>:/config
+        - <nas-dataset-config-pia-scripts-path>:/config/scripts
+        - <nas-dataset-torrents>:/data/torrents
+      restart: unless-stopped
+      network_mode: "service:vpn"
+      depends_on:
+        vpn:
+          condition: service_healthy
