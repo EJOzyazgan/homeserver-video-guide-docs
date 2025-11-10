@@ -1,0 +1,62 @@
+version: '3.9'
+services:
+  immich-exporter:
+    container_name: immich-exporter
+    image: eithan1231/immich-exporter
+    restart: unless-stopped
+    ports:
+      - 3050:3000
+    networks:
+      - monitoring-net
+    environment:
+      IMMICH_HOST: ${IMMICH_HOST}
+      IMMICH_KEY: ${IMMICH_KEY}
+
+  qbittorrent-exporter:
+    image: ghcr.io/esanchezm/prometheus-qbittorrent-exporter
+    container_name: qbittorrent-exporter
+    environment:
+      QBITTORRENT_HOST: ${QBITTORRENT_HOST}
+      QBITTORRENT_PORT: ${QBITTORRENT_PORT}
+      QBITTORRENT_USER: ${QBITTORRENT_USER}
+      QBITTORRENT_PASS: ${QBITTORRENT_PASS}
+      EXPORTER_PORT: ${EXPORTER_PORT:-8000}
+      EXPORTER_LOG_LEVEL: ${EXPORTER_LOG_LEVEL:-INFO}
+    networks:
+      - monitoring-net
+    ports:
+      - "${EXPORTER_PORT:-8000}:${EXPORTER_PORT:-8000}"
+    restart: unless-stopped
+
+  jellyfin_exporter:
+    image: drkhsh/jellyfin-exporter:dev
+    container_name: jellyfin-exporter
+    ports:
+      - 9027:9027
+    networks:
+      - monitoring-net
+    environment:
+      - JELLYFIN_BASEURL=${JELLYFIN_BASEURL}
+      - JELLYFIN_APIKEY=${JELLYFIN_APIKEY}
+    restart: unless-stopped
+
+  pihole-exporter:
+    container_name: pihole-exporter
+    image: ekofr/pihole-exporter:latest
+    env_file:
+      - stack.env
+    ports:
+      - 9617:9617
+    networks:
+      - monitoring-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5k"
+        max-file: "5"
+
+    restart: unless-stopped
+
+networks:
+  monitoring-net:
+    external: true
