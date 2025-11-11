@@ -53,7 +53,7 @@ services:
       volumes:
         - <nas-dataset-config-path>:/config
         - <nas-dataset-config-pia-scripts-path>:/config/scripts
-        - <nas-dataset-torrents>:/data/torrents
+        - <nas-dataset-torrents>:/downloads
       restart: unless-stopped
       network_mode: "service:vpn"
       depends_on:
