@@ -56,6 +56,24 @@ services:
         max-file: "5"
     restart: unless-stopped
 
+  graphite-exporter:
+    image: prom/graphite-exporter
+    container_name: graphite-exporter
+    restart: unless-stopped
+    networks:
+      - monitoring-net
+    environment:
+      - PUID=568
+      - PGID=568
+    ports:
+      - 9108:9108
+      - 9109:9109
+      - 9109:9109/udp
+    volumes:
+      - <nas-config-path>/graphite_mapping.conf:/tmp/graphite_mapping.conf
+    command:
+      - "--graphite.mapping-config=/tmp/graphite_mapping.conf"
+
 networks:
   monitoring-net:
     external: true

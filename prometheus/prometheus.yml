@@ -21,3 +21,11 @@ scrape_configs:
     static_configs:
       - targets:
         - qbittorrent-exporter:8000
+  - job_name: scraparr-exporter
+    static_configs:
+      - targets:
+        - scraparr-exporter:7100
+  - job_name: graphite-exporter
+    static_configs:
+      - targets:
+        - graphite-exporter:9108
