@@ -5,6 +5,7 @@ services:
     # Alternatively you may use ghcr.io
     #image: ghcr.io/thrnz/docker-wireguard-pia
     container_name: docker-wireguard-pia
+    restart: unless-stopped
     volumes:
       #Auth token is stored here
       - <nas-dataset-pia-config-path>:/pia

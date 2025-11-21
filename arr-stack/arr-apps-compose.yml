@@ -39,3 +39,4 @@ services:
       - <nas-dataset-config-path>:/config
     ports:
       - 9696:9696
+    restart: unless-stopped

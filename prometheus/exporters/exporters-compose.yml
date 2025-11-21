@@ -54,7 +54,6 @@ services:
       options:
         max-size: "5k"
         max-file: "5"
-
     restart: unless-stopped
 
 networks:
